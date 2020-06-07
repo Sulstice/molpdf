@@ -6,13 +6,13 @@
 
 # imports
 # -------
-from indigo import *
-
-# imports
-# -------
 import os
+import tempfile
+import shutil
+from indigo import *
 from functools import partial
-from PIL import Image as ImagePIL
+from pathlib import Path
+import platform
 
 # Reportlab library modules
 # -------------------------
@@ -23,8 +23,16 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 
 # Reportlab platypus modules
 # --------------------------
-from reportlab.platypus import BaseDocTemplate, PageTemplate
-from reportlab.platypus import Paragraph, Frame, Spacer, Image, Table, TableStyle, PageBreak
+from reportlab.platypus import BaseDocTemplate, PageTemplate, Table
+from reportlab.platypus import Paragraph, Frame, Spacer, Image, TableStyle, Flowable
+
+# Reportlab utils modules
+# -----------------------
+from reportlab.lib.utils import ImageReader
+
+# Reportlab pdfgen modules
+# ------------------------
+from reportlab.pdfgen import canvas
 
 
 class RaiseMoleculeError(Exception):
@@ -40,6 +48,15 @@ class RaiseMoleculeError(Exception):
     def __init__(self, message, errors):
         super().__init__(message)
         self.errors = errors
+
+class flowable_fig(Flowable):
+
+    def __init__(self, imgdata):
+        Flowable.__init__(self)
+        self.img = ImageReader(imgdata)
+
+    def draw(self):
+        self.canv.drawImage(self.img, 0, 0, height = -2*inch, width=4*inch)
 
 
 class MolPDF(object):
@@ -60,13 +77,15 @@ class MolPDF(object):
             print ('Please provide a list of smiles into MolPDF')
             raise TypeError
 
-        self.name_of_file = name
+        self.name = name
         self.doc = self._intialize_doc_template()
         self.story = []
+        self.temp_dir_name = ''
         self.smiles = []
         self.styles = self._set_reportlab_styles()
-        self.table_styles = self._set_table_styles()
+        self.table_style_with_background, self.table_style_without_background = self._set_table_styles()
         self.frame = self._create_frame()
+        self.canvas = canvas.Canvas(self.name)
         self.page_template = self._create_page_template()
         self.doc.addPageTemplates([self.page_template])
 
@@ -83,7 +102,7 @@ class MolPDF(object):
         """
 
         # Initiate the template with the base rather than simple to install the header/footer
-        doc = BaseDocTemplate(self.name_of_file, rightMargin=.1 * inch, leftMargin=.1 * inch,
+        doc = BaseDocTemplate(self.name, rightMargin=.1 * inch, leftMargin=.1 * inch,
                               topMargin=0.1 * inch, bottomMargin=1.5 * inch)
 
         return doc
@@ -129,7 +148,7 @@ class MolPDF(object):
             ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('ALIGN',(0,0),(-1,-1),'CENTER'),
-            ('BACKGROUND', (0, 0), (-1, -1), colors.lightskyblue)
+            ('BACKGROUND', (0, 0), (-1, -1), colors.lightsalmon)
         ])
 
         table_style_without_background =TableStyle([
@@ -170,7 +189,7 @@ class MolPDF(object):
 
         return page_template
 
-    def _add_spacer(self):
+    def add_spacer(self):
 
         """
 
@@ -179,6 +198,34 @@ class MolPDF(object):
         """
 
         self.story.append(Spacer(0.1 * inch, .3 * inch))
+
+    def _header(self, canvas, doc, styles):
+        """
+        Draws the header on a canvas.
+
+        Arguments:
+            canvas (Canvas Object): Canvas to draw the header on
+            doc (ReportLab Object): Report lab document stemming from the BaseDocTemplate
+
+        """
+        # Save the previous state
+        canvas.saveState()
+
+        header_text = ''
+
+        header_text = Paragraph("<b>CReATe Fertility Centre</b> <br />" + header_text, styles["Right"])
+
+        # Wrap the content in
+        width, height = header_text.wrap(doc.width, doc.topMargin)
+        draw_from = doc.height + doc.topMargin + height
+
+        header_text.drawOn(canvas, doc.leftMargin, draw_from)
+        canvas.setLineWidth(0.9)
+        canvas.setStrokeColor(colors.teal)
+        canvas.line(3,draw_from-3,600,draw_from-3)
+
+        # Restore the canvas state
+        canvas.restoreState()
 
     def _footer(self, canvas, doc, styles):
 
@@ -196,9 +243,9 @@ class MolPDF(object):
         # Save the previous state
         canvas.saveState()
 
-        company_address = ''
+        footer_text = ''
 
-        footer_text = Paragraph(company_address, self.styles["Center"])
+        footer_text = Paragraph(footer_text, self.styles["Center"])
 
         # Wrap the content in
         footer_text.wrap(self.doc.width, self.doc.topMargin)
@@ -220,55 +267,16 @@ class MolPDF(object):
 
         """
 
-        title = Paragraph('Sample Failed Report', self.styles['Line_Label_Center_Big'])
+        title = Paragraph(title, self.styles['Line_Label_Center_Big'])
         self.story.append(title)
 
-
-    def add_image(self, path, height = 3.0, width = 1.0, alignment = "CENTER"):
-
-        """
-
-        Adds an image to the PDF
-
-        Arguments:
-            path (String): path to the file of the image we want to load
-            height (Float): height of the image in inches
-            width (Float): width of the image in inches
-            alignment (String): where you would like the image to be aligned to. (CENTER, LEFT, RIGHT)
-
-
-        """
-
-        image = Image(path, height * inch, width * inch, hAlign=alignment)
-        self.story.append(image)
-
-    def _add_image_buffer(self, buffer_string):
-
-        """
-
-        Adds an image buffer to the pdf
-
-        Arguments:
-             buffer_string (String): the buffer string of the image
-
-        """
-
-        from reportlab.lib.utils import ImageReader
-
-        report_lab_image = ImageReader(buffer_string)
-        report_lab_image.getImageData()
-
-        self.story.append(report_lab_image)
-
-    def _generate_two_dimensional_image(self, smiles):
+    def add_image(self, smiles, temporary_directory):
 
         """
 
         Arguments:
             smiles (String): smiles representation of the molecule
-
-        Returns:
-            buffer_string (String): image buffer of the string
+            temporary_directory (tempfile object): Temporary directory of the module
 
         """
 
@@ -278,13 +286,84 @@ class MolPDF(object):
         molecule = indigo.loadMolecule(smiles)
         molecule.layout() # if not called, will be done automatically by the renderer
         indigo.setOption("render-output-format", "png")
-        indigo.setOption("render-comment", smiles)
-        indigo.setOption("render-comment-position", "top")
-        indigo.setOption("render-image-size", 500, 500)
+        indigo.setOption("render-image-size", 400, 400)
         indigo.setOption("render-background-color", 1.0, 1.0, 1.0)
-        buffer_string = renderer.renderToBuffer(molecule)
 
-        return buffer_string
+        path = os.path.join(temporary_directory, 'test.png')
+
+        renderer.renderToFile(molecule, filename=path)
+        image = Image(path, 1 * inch, 1 * inch, hAlign='CENTER')
+
+        self.add_row(image, smiles)
+
+
+    def _create_temp_directory(self):
+
+        """
+
+        Prepare a temporary directory to render the molecule images.
+
+        Creates:
+            tmp (directory): create a directory in the cwd.
+
+        """
+
+        from tempfile import gettempdir
+        tmp = os.path.join(gettempdir(), '.{}'.format(hash(os.times())))
+        os.makedirs(tmp)
+
+        return tmp
+
+
+    def _destroy_temp_directory(self, tmp):
+
+        """
+
+        Destroys the temporary directory as a part of cleanup
+
+        """
+
+        shutil.rmtree(tmp, ignore_errors=True)
+
+    def _add_table_header(self):
+
+        """
+
+        Generate the table header - pretty simple for now and keeping with molecule 2D images and the SMILES.
+
+
+        """
+
+        overview_information = [[
+            Paragraph('<b>2D Molecule</b>', self.styles["Line_Label_Center"]),
+            Paragraph('<b>SMILES</b>', self.styles["Line_Label_Center"]),
+        ]]
+
+        overview_table = Table(overview_information, colWidths=(3.5 * inch, 3.5 * inch))
+        overview_table.setStyle(self.table_style_with_background)
+        self.story.append(overview_table)
+
+    def add_row(self, image, smiles):
+
+        """
+
+        Adds a row of the 2D image of a molecule and then the SMILES as one row.
+
+        Arguments
+            image (Reportlab Image Object): Molecular image generated with reportlab Image Object.
+
+            smiles (String): smiles - 1D depiction of a molecule
+
+        """
+
+        row = [[
+            image,
+            Paragraph(smiles, self.styles["Line_Label_Center"]),
+
+        ]]
+        table = Table(row, colWidths=(3.5 * inch, 3.5 *inch))
+        table.setStyle(self.table_style_without_background)
+        self.story.append(table)
 
     def generate(self, smiles):
 
@@ -298,50 +377,18 @@ class MolPDF(object):
 
         """
 
-        self.smiles = smiles
+        tmp = self._create_temp_directory()
+        self._add_table_header()
 
-        for smiles in self.smiles:
-            self._add_image_buffer(self._generate_two_dimensional_image(smiles))
+        try:
+            self.smiles = smiles
 
-        self.doc.build(self.story)
+            for smiles in self.smiles:
+                self.add_image(smiles, tmp)
 
-
-    # def generate_ingest_failed_report(data, column_headers):
-    #
-    # """
-    # Generates the PDF Report for wright labs according to their docx
-    #
-    # Arguments
-    #     data (Lists of Pandas DataFrame): Data to be included in the PDF report with each row being necessary data,
-    #                                         each element within the list is a dataframe transposed view of the data.
-    #
-    #     column_headers (List): The list of column headers associated with the ingesting.
-    #
-    # """
-    #
-    #
-    #
-    # # ------------------------ Overview Table ------------------------------------
-    #
-    # overview_information = [[
-    #     Paragraph('<b>Samples Failed</b>', styles["Line_Label_Center"]),
-    #     Paragraph('<b>Generated Timestamp:</b>', styles["Line_Label_Center"]),
-    # ]]
-    #
-    # overview_table = Table(overview_information, colWidths=(2.5 * inch, 2.5 * inch))
-    # overview_table.setStyle(table_style_with_background)
-    # story.append(overview_table)
-    # first_row = [[
-    #     Paragraph(str(len(data)), styles["Line_Label_Center"]),
-    #     Paragraph(str(local_now), styles["Line_Label_Center"]),
-    #
-    # ]]
-    # first_row_table = Table(first_row, colWidths=(2.5 * inch, 2.5 *inch))
-    # first_row_table.setStyle(table_style_without_background)
-    # story.append(first_row_table)
-
-
-
+            self.doc.build(self.story)
+        finally:
+            self._destroy_temp_directory(tmp)
 
 
 # ------------ Indigo Renderer ------------------
@@ -358,7 +405,6 @@ class MolPDF(object):
 #
 # This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
 # WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-
 class IndigoRenderer(object):
     def __init__(self, indigo):
         self.indigo = indigo
@@ -429,8 +475,8 @@ class IndigoRenderer(object):
 
 if __name__ == '__main__':
 
-
     document = MolPDF(name='test.pdf')
-    document.add_title('Hello')
-    smiles_list = ['C(CNC(C(C)N)=O)(=O)O']
+    document.add_title('Chemical Library Test')
+    document.add_spacer()
+    smiles_list = ['C(CNC(C(C)N)=O)(=O)O', 'C(CNC(C(C)N)=O)(=O)O', 'C(CNC(C(C)N)=O)(=O)O']
     document.generate(smiles=smiles_list)

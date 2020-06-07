@@ -34,10 +34,10 @@ else:
 # exec
 # ----
 setup(
-    name="cocktail_shaker",
+    name="molpdf",
     version="0.1.0",
     packages=['molpdf'],
-    license='MIT',
+    license='MPL 2.0',
     author="Suliman Sharif",
     author_email="sharifsuliman1@gmail.com",
     url="https://www.github.com/Sulstice/molpdf",

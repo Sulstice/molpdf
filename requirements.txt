@@ -1,0 +1,6 @@
+epam.indigo==1.4.0b0
+numpy==1.18.3
+opencv-python==4.2.0.34
+Pillow==7.1.1
+reportlab==3.5.42
+six==1.14.0
