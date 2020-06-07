@@ -472,11 +472,3 @@ class IndigoRenderer(object):
             wb.dispose()
 
 # ----------------- End of Indigo Renderer -----------------
-
-if __name__ == '__main__':
-
-    document = MolPDF(name='test.pdf')
-    document.add_title('Chemical Library Test')
-    document.add_spacer()
-    smiles_list = ['C(CNC(C(C)N)=O)(=O)O', 'C(CNC(C(C)N)=O)(=O)O', 'C(CNC(C(C)N)=O)(=O)O']
-    document.generate(smiles=smiles_list)
