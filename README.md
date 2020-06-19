@@ -3,6 +3,8 @@ MolPDF: A PDF Document Generator for SMILES!
 
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 ![Python](https://img.shields.io/badge/python-3.6-blue.svg)
+[![PyPI version](https://badge.fury.io/py/molpdf.svg)](https://badge.fury.io/py/molpdf)
+[![DOI](https://zenodo.org/badge/256060429.svg)](https://zenodo.org/badge/latestdoi/256060429)
 
 
 Welcome to MolPDF! The document generator for cheminformatics! MolPDF does one thing right now and is convert a list of 1D 
