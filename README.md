@@ -17,6 +17,7 @@ Announcements
 =============
 
 -   June 7th 2020 First version 0.1.0 is released to the public
+-   June 19th 2020 Second version 0.2.0 is released to the public with MolPDFParser
 
 Installation 
 ============
