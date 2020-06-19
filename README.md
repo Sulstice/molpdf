@@ -38,6 +38,57 @@ Generate a PDF of SMILES
 
 ```
 
+Read a MolPDF Generated File into SMILES
+
+```
+
+    document = MolPDFParser('example.pdf')
+    smiles_list = document.extract_smiles()
+    print (smiles_list)
+    >>> ['C(CNC(C(C)N)=O)(=O)O', 'C(CNC(C(C)N)=O)(=O)O', 'C(CNC(C(C)N)=O)(=O)O']
+
+
+```
+
+Generate a List a PDF of Amino Acids
+
+```
+
+    # Turning an Amino Acid List into a PDF
+    
+
+    amino_acid_side_chains = {
+        "alanine": "C",  "arginine": "CCCCNC(N)=N", "asparagine": "CCC(N)=O", "aspartic acid": "CC(O)=O",
+        "cysteine": "CS", "glutamic acid": "CCC(O)=O", "glutamine": "CCC(N)=O", "glycine": "[H]",
+        "histidine": "CC1=CNC=N1", "isoleucine": "C(CC)([H])C", "leucine": "CC(C)C", "lysine": "CCCCN",
+        "methionine": "CCSC", "phenylalanine": "CC1=CC=CC=C1", "proline": "C2CCCN2", "serine": "CO",
+        "threonine": "C(C)([H])O", "tryptophan": "CCC1=CNC2=C1C=CC=C2", "tyrosine": "CC1=CC=C(O)C=C1",
+        "valine": "C(C)C"
+    }
+
+    document = MolPDF(name='amino_acids.pdf')
+    document.add_title('Chemical Library Test')
+    document.add_spacer()
+
+    smiles_amino_acids = list(amino_acid_side_chains.values())
+    document.generate(smiles=smiles_amino_acids)
+    
+```
+
+Performance
+===========
+
+Generating the 2D images into a PDF can be cumbersome if you have a large chemical library - below 
+I have some average time statistics of how fast a PDF can be generated and parsed using MolPDF and MolPDFParser.
+
+
+Method: 'MolPDF.generate()'
+
+Length of Smiles: 10 | Time to execute: ~ 0.19 seconds
+Length of Smiles: 100 | Time to execute: ~ 1.29 seconds
+Length of Smiles: 1000 | Time to execute: ~ 12.17 seconds
+
+
 Structure of MolPDF
 =======================
 

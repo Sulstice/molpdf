@@ -35,7 +35,7 @@ else:
 # ----
 setup(
     name="molpdf",
-    version="0.1.0",
+    version="0.2.0",
     packages=['molpdf'],
     license='MPL 2.0',
     author="Suliman Sharif",

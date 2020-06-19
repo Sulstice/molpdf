@@ -14,6 +14,15 @@ from functools import partial
 from pathlib import Path
 import platform
 
+# PDFRW library modules
+# ---------------------
+from pdfrw import PdfReader, PdfWriter
+
+# PDF library modules
+# -------------------
+from pdfminer.pdfparser import PDFParser
+from pdfminer.pdfdocument import PDFDocument
+
 # Reportlab library modules
 # -------------------------
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -34,6 +43,24 @@ from reportlab.lib.utils import ImageReader
 # ------------------------
 from reportlab.pdfgen import canvas
 
+import time
+
+def timeit(method):
+
+    def timed(*args, **kwargs):
+        time_start = time.time()
+        result = method(*args, **kwargs)
+        time_end = time.time()
+
+
+        if 'log_time' in kwargs:
+            name = kwargs.get('log_name', method.__name__.upper())
+            kwargs['log_time'][name] = int((time_end -time_start))
+        else:
+            print ('Method: %r Time: %2.2f seconds' % (method.__name__, ((time_end - time_start))))
+        return result
+
+    return timed
 
 class RaiseMoleculeError(Exception):
 
@@ -58,6 +85,34 @@ class flowable_fig(Flowable):
     def draw(self):
         self.canv.drawImage(self.img, 0, 0, height = -2*inch, width=4*inch)
 
+
+class MolPDFParser(object):
+
+    __version__ = '0.1.0'
+
+    def __init__ (self, file_path):
+
+        self.file_path = file_path
+        self.molpdf = open(self.file_path, 'rb')
+        self.parser = PDFParser(self.molpdf)
+        self.document = PDFDocument(self.parser)
+
+
+    def extract_smiles(self):
+
+        """
+
+        Extract the smiles data coming out the PDF
+
+        Returns:
+            smiles_list (List): List of SMILES strings from the metadata of the PDF
+
+
+        """
+
+        smiles_list = self.document.info[0]['smiles_list']
+
+        return smiles_list
 
 class MolPDF(object):
 
@@ -289,7 +344,7 @@ class MolPDF(object):
         indigo.setOption("render-image-size", 400, 400)
         indigo.setOption("render-background-color", 1.0, 1.0, 1.0)
 
-        path = os.path.join(temporary_directory, 'test.png')
+        path = os.path.join(temporary_directory, smiles + '.png')
 
         renderer.renderToFile(molecule, filename=path)
         image = Image(path, 1 * inch, 1 * inch, hAlign='CENTER')
@@ -365,6 +420,7 @@ class MolPDF(object):
         table.setStyle(self.table_style_without_background)
         self.story.append(table)
 
+    @timeit
     def generate(self, smiles):
 
 
@@ -386,7 +442,15 @@ class MolPDF(object):
             for smiles in self.smiles:
                 self.add_image(smiles, tmp)
 
+            # Build the initial PDF using Reportlab
             self.doc.build(self.story)
+
+            # Read back in the PDF to add metadata using the PDF Writer
+            # Currently in reportlab there isn't a way to support adding info on the pdf
+            trailer = PdfReader(self.name)
+            trailer.Info.smiles_list = self.smiles
+            PdfWriter(self.name, trailer=trailer).write()
+
         finally:
             self._destroy_temp_directory(tmp)
 
@@ -472,3 +536,5 @@ class IndigoRenderer(object):
             wb.dispose()
 
 # ----------------- End of Indigo Renderer -----------------
+
+

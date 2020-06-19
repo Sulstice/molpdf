@@ -4,5 +4,6 @@
 #
 # ----------------------------
 from molpdf.molpdf import MolPDF
+from molpdf.molpdf import MolPDFParser
 
 name='MolPDF'
