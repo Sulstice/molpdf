@@ -74,7 +74,7 @@ Generate a List a PDF of Amino Acids
     document.add_spacer()
 
     smiles_amino_acids = list(amino_acid_side_chains.values())
-    document.generate(smiles=smiles_amino_acids)
+    document.generate(smiles=smiles_amino_acids, include_failed_smiles=True)
     
 ```
 

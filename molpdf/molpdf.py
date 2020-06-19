@@ -325,26 +325,35 @@ class MolPDF(object):
         title = Paragraph(title, self.styles['Line_Label_Center_Big'])
         self.story.append(title)
 
-    def add_image(self, smiles, temporary_directory):
+    def add_image(self, smiles, temporary_directory, include_failed_smiles=False):
 
         """
 
         Arguments:
             smiles (String): smiles representation of the molecule
             temporary_directory (tempfile object): Temporary directory of the module
+            include_failed_smiles (Bool): whether the user would like to include failed smiles.
 
         """
 
         indigo = Indigo()
         renderer = IndigoRenderer(indigo)
 
-        molecule = indigo.loadMolecule(smiles)
+        try:
+            molecule = indigo.loadMolecule(smiles)
+        except IndigoException as e:
+            if include_failed_smiles:
+                self.add_row("Failed Rendering", smiles)
+            return
+
         molecule.layout() # if not called, will be done automatically by the renderer
         indigo.setOption("render-output-format", "png")
         indigo.setOption("render-image-size", 400, 400)
         indigo.setOption("render-background-color", 1.0, 1.0, 1.0)
 
-        path = os.path.join(temporary_directory, smiles + '.png')
+        import uuid
+
+        path = os.path.join(temporary_directory,  str(uuid.uuid4()) + '.png')
 
         renderer.renderToFile(molecule, filename=path)
         image = Image(path, 1 * inch, 1 * inch, hAlign='CENTER')
@@ -421,7 +430,7 @@ class MolPDF(object):
         self.story.append(table)
 
     @timeit
-    def generate(self, smiles):
+    def generate(self, smiles, include_failed_smiles=False):
 
 
         """
@@ -440,7 +449,7 @@ class MolPDF(object):
             self.smiles = smiles
 
             for smiles in self.smiles:
-                self.add_image(smiles, tmp)
+                self.add_image(smiles, tmp, include_failed_smiles)
 
             # Build the initial PDF using Reportlab
             self.doc.build(self.story)
