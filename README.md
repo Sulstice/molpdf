@@ -91,6 +91,7 @@ Method: 'MolPDF.generate()'
 Length of Smiles: 10 | Time to execute: ~ 0.19 seconds
 Length of Smiles: 100 | Time to execute: ~ 1.29 seconds
 Length of Smiles: 1000 | Time to execute: ~ 12.17 seconds
+Length of Smiles: 10000 | Time to execute: ~ 178.88 seconds
 
 
 Structure of MolPDF
