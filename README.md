@@ -27,6 +27,12 @@ MolPDF is going to be distribute via PyPi and as the content store grows we can 
 making it accessible to all regardless of what you use. Alternatively, you could have a glance at the source code and copy/paste
 it yourself.
 
+```
+
+    pip install molpdf
+
+```
+
 QuickStart
 ==========
 
