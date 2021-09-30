@@ -4,6 +4,7 @@ MolPDF: A PDF Document Generator for SMILES!
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 ![Python](https://img.shields.io/badge/python-3.6-blue.svg)
 [![PyPI version](https://badge.fury.io/py/molpdf.svg)](https://badge.fury.io/py/molpdf)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
 [![DOI](https://zenodo.org/badge/256060429.svg)](https://zenodo.org/badge/latestdoi/256060429)
 
 
@@ -25,6 +26,12 @@ Installation
 MolPDF is going to be distribute via PyPi and as the content store grows we can expand it to other pieces of software
 making it accessible to all regardless of what you use. Alternatively, you could have a glance at the source code and copy/paste
 it yourself.
+
+```
+
+    pip install molpdf
+
+```
 
 QuickStart
 ==========
@@ -103,7 +110,8 @@ Method: 'MolPDF.generate()'
 Length of Smiles: 10 | Time to execute: ~ 0.19 seconds
 Length of Smiles: 100 | Time to execute: ~ 1.29 seconds
 Length of Smiles: 1000 | Time to execute: ~ 12.17 seconds
-Length of Smiles: 10000 | Time to execute: 1.3 minutes
+Length of Smiles: 10000 | Time to execute: ~ 178.88 seconds
+
 
 Structure of MolPDF
 =======================
