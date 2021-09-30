@@ -32,14 +32,27 @@ QuickStart
 Generate a PDF of SMILES
 
 ```
+    common_organic_solvents_smiles = {
+            'acetic acid': 'CC(=O)O',
+            'acetone' : 'CC(=O)C',
+            'acetonitrile': 'CC#N',
+            'benzene': 'C1=CC=CC=C1',
+            'tert-butyl alcohol': 'CC(C)(C)O',
+        
+    }
     
-    document = MolPDF(name='example.pdf')
-    document.add_title('Chemical Library Test')
+    smiles_list = list(list(common_organic_solvents_smiles.values()))
+    labels = list(list(common_organic_solvents_smiles.keys()))
+    document = MolPDF(name='common_organic_solvents.pdf')
+    document.add_title('Common Organic Solvents')
     document.add_spacer()
-    smiles_list = ['C(CNC(C(C)N)=O)(=O)O', 'C(CNC(C(C)N)=O)(=O)O', 'C(CNC(C(C)N)=O)(=O)O']
-    document.generate(smiles=smiles_list)
+    document.generate(smiles=smiles_list, labels=labels, include_failed_smiles=True)
 
 ```
+
+<p align="center">
+  <img width="800" height="400" src="images/example_common_organic_solvents.png">
+</p>
 
 Read a MolPDF Generated File into SMILES
 
@@ -50,8 +63,8 @@ Read a MolPDF Generated File into SMILES
     print (smiles_list)
     >>> ['C(CNC(C(C)N)=O)(=O)O', 'C(CNC(C(C)N)=O)(=O)O', 'C(CNC(C(C)N)=O)(=O)O']
 
-
 ```
+
 
 Generate a List a PDF of Amino Acids
 
@@ -90,7 +103,7 @@ Method: 'MolPDF.generate()'
 Length of Smiles: 10 | Time to execute: ~ 0.19 seconds
 Length of Smiles: 100 | Time to execute: ~ 1.29 seconds
 Length of Smiles: 1000 | Time to execute: ~ 12.17 seconds
-
+Length of Smiles: 10000 | Time to execute: 1.3 minutes
 
 Structure of MolPDF
 =======================

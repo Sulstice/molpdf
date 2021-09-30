@@ -182,8 +182,8 @@ class MolPDF(object):
         styles.add(ParagraphStyle(name='Line_Data_Largest', alignment=TA_LEFT, fontSize=14, leading=15))
         styles.add(ParagraphStyle(name='Line_Label', font='Helvetica-Bold', fontSize=7, leading=6, alignment=TA_LEFT))
         styles.add(ParagraphStyle(name='Line_Label_Spacing', font='Helvetica-Bold', fontSize=7, leading=10, alignment=TA_LEFT))
-        styles.add(ParagraphStyle(name='Line_Label_Center', font='Helvetica-Bold', fontSize=7, alignment=TA_CENTER))
-        styles.add(ParagraphStyle(name='Line_Label_Center_Big', font='Helvetica-Bold', fontSize=12, alignment=TA_CENTER))
+        styles.add(ParagraphStyle(name='Line_Label_Center', font='Roboto', fontSize=5, alignment=TA_CENTER))
+        styles.add(ParagraphStyle(name='Line_Label_Center_Big', font='Helvetica-Bold', fontSize=9, alignment=TA_CENTER))
 
         return styles
 
@@ -199,18 +199,18 @@ class MolPDF(object):
         """
 
         table_style_with_background = TableStyle([
-            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.lightblue),
+            ('BOX', (0, 0), (-1, -1), 0.25, colors.lightblue),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('ALIGN',(0,0),(-1,-1),'CENTER'),
-            ('BACKGROUND', (0, 0), (-1, -1), colors.lightsalmon)
+            ('BACKGROUND', (0, 0), (-1, -1), colors.lightsalmon),
         ])
 
         table_style_without_background =TableStyle([
-            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.black),
-            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+            ('INNERGRID', (0, 0), (-1, -1), 0.25, colors.lightblue),
+            ('BOX', (0, 0), (-1, -1), 0.25, colors.lightblue),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('ALIGN',(0,0),(-1,-1),'CENTER')
+            ('ALIGN',(0,0),(-1,-1),'CENTER'),
         ])
 
         return table_style_with_background, table_style_without_background
@@ -268,7 +268,7 @@ class MolPDF(object):
 
         header_text = ''
 
-        header_text = Paragraph("<b>CReATe Fertility Centre</b> <br />" + header_text, styles["Right"])
+        header_text = Paragraph("<b></b> <br />" + header_text, styles["Right"])
 
         # Wrap the content in
         width, height = header_text.wrap(doc.width, doc.topMargin)
@@ -325,12 +325,11 @@ class MolPDF(object):
         title = Paragraph(title, self.styles['Line_Label_Center_Big'])
         self.story.append(title)
 
-    def add_image(self, smiles, temporary_directory, include_failed_smiles=False):
+    def add_image(self, temporary_directory, include_failed_smiles=False):
 
         """
 
         Arguments:
-            smiles (String): smiles representation of the molecule
             temporary_directory (tempfile object): Temporary directory of the module
             include_failed_smiles (Bool): whether the user would like to include failed smiles.
 
@@ -339,26 +338,32 @@ class MolPDF(object):
         indigo = Indigo()
         renderer = IndigoRenderer(indigo)
 
-        try:
-            molecule = indigo.loadMolecule(smiles)
-        except IndigoException as e:
-            if include_failed_smiles:
-                self.add_row("Failed Rendering", smiles)
-            return
+        chemical_data = []
 
-        molecule.layout() # if not called, will be done automatically by the renderer
-        indigo.setOption("render-output-format", "png")
-        indigo.setOption("render-image-size", 400, 400)
-        indigo.setOption("render-background-color", 1.0, 1.0, 1.0)
+        for smiles in self.smiles:
 
-        import uuid
+            try:
+                molecule = indigo.loadMolecule(smiles)
+            except IndigoException as e:
+                if include_failed_smiles:
+                    self.add_row("Failed Rendering", smiles)
+                return
 
-        path = os.path.join(temporary_directory,  str(uuid.uuid4()) + '.png')
+            molecule.layout() # if not called, will be done automatically by the renderer
+            indigo.setOption("render-output-format", "png")
+            indigo.setOption("render-image-size", 200, 200)
+            indigo.setOption("render-background-color", 1.0, 1.0, 1.0)
 
-        renderer.renderToFile(molecule, filename=path)
-        image = Image(path, 1 * inch, 1 * inch, hAlign='CENTER')
+            import uuid
 
-        self.add_row(image, smiles)
+            path = os.path.join(temporary_directory,  str(uuid.uuid4()) + '.png')
+
+            renderer.renderToFile(molecule, filename=path)
+            image = Image(path, 0.5 * inch, 0.5 * inch, hAlign='CENTER')
+
+            chemical_data.append([image, smiles])
+
+        self.add_table(chemical_data)
 
 
     def _create_temp_directory(self):
@@ -389,7 +394,7 @@ class MolPDF(object):
 
         shutil.rmtree(tmp, ignore_errors=True)
 
-    def _add_table_header(self):
+    def _add_table_label(self, smiles):
 
         """
 
@@ -399,38 +404,130 @@ class MolPDF(object):
         """
 
         overview_information = [[
-            Paragraph('<b>2D Molecule</b>', self.styles["Line_Label_Center"]),
-            Paragraph('<b>SMILES</b>', self.styles["Line_Label_Center"]),
+            Paragraph('%s' % smiles, self.styles["Line_Label_Center"]),
         ]]
 
-        overview_table = Table(overview_information, colWidths=(3.5 * inch, 3.5 * inch))
+        overview_table = Table(overview_information, colWidths=(1.5 * inch))
         overview_table.setStyle(self.table_style_with_background)
         self.story.append(overview_table)
 
-    def add_row(self, image, smiles):
+    def add_table(self, chemical_data):
 
         """
 
         Adds a row of the 2D image of a molecule and then the SMILES as one row.
 
         Arguments
-            image (Reportlab Image Object): Molecular image generated with reportlab Image Object.
-
-            smiles (String): smiles - 1D depiction of a molecule
+            chemical_data (List): List of objects for the image and smiles [[image1, smiles1], [image2, smiles2]]
 
         """
 
-        row = [[
-            image,
-            Paragraph(smiles, self.styles["Line_Label_Center"]),
+        max_cols = 8
+        col_widths = [
+                0.85 * inch,
+                0.85 * inch,
+                0.85 * inch,
+                0.85 * inch,
+                0.85 * inch,
+                0.85 * inch,
+                0.85 * inch,
+                0.85 * inch
+        ]
 
-        ]]
-        table = Table(row, colWidths=(3.5 * inch, 3.5 *inch))
-        table.setStyle(self.table_style_without_background)
-        self.story.append(table)
+        for i in range(0, len(chemical_data), max_cols):
+
+            data_left = len(chemical_data) - i
+            if data_left < max_cols:
+
+                row = [[]]
+
+                # Images
+
+                for i in range(0, data_left):
+                    row[0].append(chemical_data[data_left + i][0])
+
+                    table = Table(row, colWidths=col_widths)
+                    table.setStyle(self.table_style_without_background)
+                    self.story.append(table)
+
+                row = [[]]
+
+                # SMILES
+
+                for i in range(0, data_left):
+                    row[0].append(Paragraph(chemical_data[data_left + i][1], self.styles["Line_Label_Center"]),)
+
+                    table = Table(row, colWidths=col_widths)
+                    table.setStyle(self.table_style_without_background)
+                    self.story.append(table)
+
+                # Labels
+
+                row = [[]]
+
+                for i in range(0, data_left):
+                    row[0].append(Paragraph(self.labels[data_left + i][1], self.styles["Line_Label_Center"]),)
+
+                    table = Table(row, colWidths=col_widths)
+                    table.setStyle(self.table_style_without_background)
+                    self.story.append(table)
+            else:
+
+                row = [[
+                    chemical_data[i][0],
+                    chemical_data[i + 1][0],
+                    chemical_data[i + 2][0],
+                    chemical_data[i + 3][0],
+                    chemical_data[i + 4][0],
+                    chemical_data[i + 5][0],
+                    chemical_data[i + 6][0],
+                    chemical_data[i + 7][0],
+
+                ]]
+
+                table = Table(row, colWidths=col_widths)
+                table.setStyle(self.table_style_without_background)
+                self.story.append(table)
+
+                row = [[
+                    Paragraph(chemical_data[i][1], self.styles["Line_Label_Center"]),
+                    Paragraph(chemical_data[i + 1][1], self.styles["Line_Label_Center"]),
+                    Paragraph(chemical_data[i + 2][1], self.styles["Line_Label_Center"]),
+                    Paragraph(chemical_data[i + 3][1], self.styles["Line_Label_Center"]),
+                    Paragraph(chemical_data[i + 4][1], self.styles["Line_Label_Center"]),
+                    Paragraph(chemical_data[i + 5][1], self.styles["Line_Label_Center"]),
+                    Paragraph(chemical_data[i + 6][1], self.styles["Line_Label_Center"]),
+                    Paragraph(chemical_data[i + 7][1], self.styles["Line_Label_Center"]),
+
+                ]]
+
+                table = Table(row, colWidths=col_widths)
+                table.setStyle(self.table_style_without_background)
+                self.story.append(table)
+
+                if self.labels:
+
+                    row = [[
+                        Paragraph(self.labels[i], self.styles["Line_Label_Center"]),
+                        Paragraph(self.labels[i + 1], self.styles["Line_Label_Center"]),
+                        Paragraph(self.labels[i + 2], self.styles["Line_Label_Center"]),
+                        Paragraph(self.labels[i + 3], self.styles["Line_Label_Center"]),
+                        Paragraph(self.labels[i + 4], self.styles["Line_Label_Center"]),
+                        Paragraph(self.labels[i + 5], self.styles["Line_Label_Center"]),
+                        Paragraph(self.labels[i + 6], self.styles["Line_Label_Center"]),
+                        Paragraph(self.labels[i + 7], self.styles["Line_Label_Center"]),
+
+                    ]]
+
+                    table = Table(row, colWidths=col_widths)
+                    table.setStyle(self.table_style_without_background)
+                    self.story.append(table)
+
+
+            self.add_spacer()
 
     @timeit
-    def generate(self, smiles, include_failed_smiles=False):
+    def generate(self, smiles, labels=[], include_failed_smiles=False):
 
 
         """
@@ -439,17 +536,19 @@ class MolPDF(object):
 
         Arguments:
             smiles (List): List of smiles you would like to pass in
+            labels (List): List of labels that might need to be added based on the user.
+            include_failed_smiles (Bool): Whether the user wants to include failed smiles.
 
         """
 
         tmp = self._create_temp_directory()
-        self._add_table_header()
+
+        self.labels = labels
 
         try:
             self.smiles = smiles
 
-            for smiles in self.smiles:
-                self.add_image(smiles, tmp, include_failed_smiles)
+            self.add_image(tmp, include_failed_smiles)
 
             # Build the initial PDF using Reportlab
             self.doc.build(self.story)
@@ -466,18 +565,6 @@ class MolPDF(object):
 
 # ------------ Indigo Renderer ------------------
 
-#
-# Copyright (C) 2009-2015 EPAM Systems
-#
-# This file is part of Indigo toolkit.
-#
-# This file may be distributed and/or modified under the terms of the
-# GNU General Public License version 3 as published by the Free Software
-# Foundation and appearing in the file LICENSE.GPL included in the
-# packaging of this file.
-#
-# This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-# WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 class IndigoRenderer(object):
     def __init__(self, indigo):
         self.indigo = indigo
