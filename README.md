@@ -58,7 +58,7 @@ Generate a PDF of SMILES
 ```
 
 <p align="center">
-  <img width="800" height="800" src="images/example_common_organic_solvents.png">
+  <img width="800" height="600" src="images/example_common_organic_solvents.png">
 </p>
 
 Read a MolPDF Generated File into SMILES
