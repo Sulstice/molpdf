@@ -35,9 +35,9 @@ else:
 # ----
 setup(
     name="molpdf",
-    version="0.4.0",
+    version="0.4.1",
     packages=['molpdf'],
-    license='GNU 3.0',
+    license='GPL',
     author="Suliman Sharif",
     author_email="sharifsuliman1@gmail.com",
     url="https://www.github.com/Sulstice/molpdf",
@@ -49,7 +49,7 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Natural Language :: English',
-        'License :: OSI Approved :: GNU License',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
