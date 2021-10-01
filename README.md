@@ -39,6 +39,8 @@ QuickStart
 Generate a PDF of SMILES
 
 ```
+    from molpdf import MolPDF
+    
     common_organic_solvents_smiles = {
             'acetic acid': 'CC(=O)O',
             'acetone' : 'CC(=O)C',
