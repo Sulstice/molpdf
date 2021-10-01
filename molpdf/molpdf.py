@@ -434,94 +434,137 @@ class MolPDF(object):
                 0.85 * inch
         ]
 
-        for i in range(0, len(chemical_data), max_cols):
+        if len(chemical_data) < max_cols:
 
-            data_left = len(chemical_data) - i
-            if data_left < max_cols:
+
+            row = [[]]
+
+            # Images
+
+            for i in range(0, len(chemical_data)):
+                row[0].append(chemical_data[i][0])
+
+            table = Table(row, colWidths=col_widths)
+            table.setStyle(self.table_style_without_background)
+            self.story.append(table)
+
+            row = [[]]
+
+            # SMILES
+
+            for i in range(0, len(chemical_data)):
+                row[0].append(Paragraph(chemical_data[i][1], self.styles["Line_Label_Center"]),)
+
+            table = Table(row, colWidths=col_widths)
+            table.setStyle(self.table_style_without_background)
+            self.story.append(table)
+
+            # Labels
+
+            if self.labels:
 
                 row = [[]]
 
-                # Images
-
-                for i in range(0, data_left):
-                    row[0].append(chemical_data[data_left + i][0])
-
-                    table = Table(row, colWidths=col_widths)
-                    table.setStyle(self.table_style_without_background)
-                    self.story.append(table)
-
-                row = [[]]
-
-                # SMILES
-
-                for i in range(0, data_left):
-                    row[0].append(Paragraph(chemical_data[data_left + i][1], self.styles["Line_Label_Center"]),)
-
-                    table = Table(row, colWidths=col_widths)
-                    table.setStyle(self.table_style_without_background)
-                    self.story.append(table)
-
-                # Labels
-
-                row = [[]]
-
-                for i in range(0, data_left):
-                    row[0].append(Paragraph(self.labels[data_left + i][1], self.styles["Line_Label_Center"]),)
-
-                    table = Table(row, colWidths=col_widths)
-                    table.setStyle(self.table_style_without_background)
-                    self.story.append(table)
-            else:
-
-                row = [[
-                    chemical_data[i][0],
-                    chemical_data[i + 1][0],
-                    chemical_data[i + 2][0],
-                    chemical_data[i + 3][0],
-                    chemical_data[i + 4][0],
-                    chemical_data[i + 5][0],
-                    chemical_data[i + 6][0],
-                    chemical_data[i + 7][0],
-
-                ]]
+                for i in range(0, len(chemical_data)):
+                    row[0].append(Paragraph(self.labels[i], self.styles["Line_Label_Center"]),)
 
                 table = Table(row, colWidths=col_widths)
                 table.setStyle(self.table_style_without_background)
                 self.story.append(table)
 
-                row = [[
-                    Paragraph(chemical_data[i][1], self.styles["Line_Label_Center"]),
-                    Paragraph(chemical_data[i + 1][1], self.styles["Line_Label_Center"]),
-                    Paragraph(chemical_data[i + 2][1], self.styles["Line_Label_Center"]),
-                    Paragraph(chemical_data[i + 3][1], self.styles["Line_Label_Center"]),
-                    Paragraph(chemical_data[i + 4][1], self.styles["Line_Label_Center"]),
-                    Paragraph(chemical_data[i + 5][1], self.styles["Line_Label_Center"]),
-                    Paragraph(chemical_data[i + 6][1], self.styles["Line_Label_Center"]),
-                    Paragraph(chemical_data[i + 7][1], self.styles["Line_Label_Center"]),
+        else:
 
-                ]]
+            for i in range(0, len(chemical_data), max_cols):
 
-                table = Table(row, colWidths=col_widths)
-                table.setStyle(self.table_style_without_background)
-                self.story.append(table)
+                data_left = len(chemical_data) - i
 
-                if self.labels:
+                if data_left < max_cols:
+
+                    row = [[]]
+
+                    # Images
+
+                    for i in range(0, data_left):
+                        row[0].append(chemical_data[data_left + i][0])
+
+                        table = Table(row, colWidths=col_widths)
+                        table.setStyle(self.table_style_without_background)
+                        self.story.append(table)
+
+                    row = [[]]
+
+                    # SMILES
+
+                    for i in range(0, data_left):
+                        row[0].append(Paragraph(chemical_data[data_left + i][1], self.styles["Line_Label_Center"]),)
+
+                        table = Table(row, colWidths=col_widths)
+                        table.setStyle(self.table_style_without_background)
+                        self.story.append(table)
+
+                    # Labels
+
+                    if self.labels:
+
+                        row = [[]]
+
+                        for i in range(0, data_left):
+                            row[0].append(Paragraph(self.labels[data_left + i], self.styles["Line_Label_Center"]),)
+
+                            table = Table(row, colWidths=col_widths)
+                            table.setStyle(self.table_style_without_background)
+                            self.story.append(table)
+                else:
 
                     row = [[
-                        Paragraph(self.labels[i], self.styles["Line_Label_Center"]),
-                        Paragraph(self.labels[i + 1], self.styles["Line_Label_Center"]),
-                        Paragraph(self.labels[i + 2], self.styles["Line_Label_Center"]),
-                        Paragraph(self.labels[i + 3], self.styles["Line_Label_Center"]),
-                        Paragraph(self.labels[i + 4], self.styles["Line_Label_Center"]),
-                        Paragraph(self.labels[i + 5], self.styles["Line_Label_Center"]),
-                        Paragraph(self.labels[i + 6], self.styles["Line_Label_Center"]),
-                        Paragraph(self.labels[i + 7], self.styles["Line_Label_Center"]),
+                        chemical_data[i][0],
+                        chemical_data[i + 1][0],
+                        chemical_data[i + 2][0],
+                        chemical_data[i + 3][0],
+                        chemical_data[i + 4][0],
+                        chemical_data[i + 5][0],
+                        chemical_data[i + 6][0],
+                        chemical_data[i + 7][0],
 
                     ]]
 
                     table = Table(row, colWidths=col_widths)
                     table.setStyle(self.table_style_without_background)
                     self.story.append(table)
+
+                    row = [[
+                        Paragraph(chemical_data[i][1], self.styles["Line_Label_Center"]),
+                        Paragraph(chemical_data[i + 1][1], self.styles["Line_Label_Center"]),
+                        Paragraph(chemical_data[i + 2][1], self.styles["Line_Label_Center"]),
+                        Paragraph(chemical_data[i + 3][1], self.styles["Line_Label_Center"]),
+                        Paragraph(chemical_data[i + 4][1], self.styles["Line_Label_Center"]),
+                        Paragraph(chemical_data[i + 5][1], self.styles["Line_Label_Center"]),
+                        Paragraph(chemical_data[i + 6][1], self.styles["Line_Label_Center"]),
+                        Paragraph(chemical_data[i + 7][1], self.styles["Line_Label_Center"]),
+
+                    ]]
+
+                    table = Table(row, colWidths=col_widths)
+                    table.setStyle(self.table_style_without_background)
+                    self.story.append(table)
+
+                    if self.labels:
+
+                        row = [[
+                            Paragraph(self.labels[i], self.styles["Line_Label_Center"]),
+                            Paragraph(self.labels[i + 1], self.styles["Line_Label_Center"]),
+                            Paragraph(self.labels[i + 2], self.styles["Line_Label_Center"]),
+                            Paragraph(self.labels[i + 3], self.styles["Line_Label_Center"]),
+                            Paragraph(self.labels[i + 4], self.styles["Line_Label_Center"]),
+                            Paragraph(self.labels[i + 5], self.styles["Line_Label_Center"]),
+                            Paragraph(self.labels[i + 6], self.styles["Line_Label_Center"]),
+                            Paragraph(self.labels[i + 7], self.styles["Line_Label_Center"]),
+
+                        ]]
+
+                        table = Table(row, colWidths=col_widths)
+                        table.setStyle(self.table_style_without_background)
+                        self.story.append(table)
 
 
             self.add_spacer()
