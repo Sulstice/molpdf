@@ -39,6 +39,8 @@ QuickStart
 Generate a PDF of SMILES
 
 ```
+    from molpdf import MolPDF
+    
     common_organic_solvents_smiles = {
             'acetic acid': 'CC(=O)O',
             'acetone' : 'CC(=O)C',
@@ -58,7 +60,7 @@ Generate a PDF of SMILES
 ```
 
 <p align="center">
-  <img width="800" height="400" src="images/example_common_organic_solvents.png">
+  <img width="800" height="600" src="images/example_common_organic_solvents.png">
 </p>
 
 Read a MolPDF Generated File into SMILES
