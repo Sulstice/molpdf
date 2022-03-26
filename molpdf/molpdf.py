@@ -446,6 +446,7 @@ class MolPDF(object):
 
             table = Table(row, colWidths=col_widths)
             table.setStyle(self.table_style_without_background)
+
             self.story.append(table)
 
             row = [[]]
@@ -457,6 +458,7 @@ class MolPDF(object):
 
             table = Table(row, colWidths=col_widths)
             table.setStyle(self.table_style_without_background)
+
             self.story.append(table)
 
             # Labels
@@ -480,40 +482,51 @@ class MolPDF(object):
 
                 if data_left < max_cols:
 
-                    row = [[]]
-
-                    # Images
-
                     for i in range(0, data_left):
+
+                        # Images
+
+                        row = [[]]
+
                         row[0].append(chemical_data[data_left + i][0])
 
                         table = Table(row, colWidths=col_widths)
                         table.setStyle(self.table_style_without_background)
+
                         self.story.append(table)
 
-                    row = [[]]
-
-                    # SMILES
-
-                    for i in range(0, data_left):
-                        row[0].append(Paragraph(chemical_data[data_left + i][1], self.styles["Line_Label_Center"]),)
-
-                        table = Table(row, colWidths=col_widths)
-                        table.setStyle(self.table_style_without_background)
-                        self.story.append(table)
-
-                    # Labels
-
-                    if self.labels:
+                        # SMILES
 
                         row = [[]]
 
-                        for i in range(0, data_left):
-                            row[0].append(Paragraph(self.labels[data_left + i], self.styles["Line_Label_Center"]),)
+                        row[0].append(
+                            Paragraph(
+                                chemical_data[data_left + i][1],
+                                self.styles["Line_Label_Center"]),
+                        )
+
+                        table = Table(row, colWidths=col_widths)
+                        table.setStyle(self.table_style_without_background)
+
+                        self.story.append(table)
+
+                        # Labels
+
+                        if self.labels:
+
+                            row = [[]]
+
+                            row[0].append(
+                                Paragraph(
+                                    chemical_data[data_left + i][1],
+                                    self.styles["Line_Label_Center"]),
+                            )
 
                             table = Table(row, colWidths=col_widths)
                             table.setStyle(self.table_style_without_background)
+
                             self.story.append(table)
+
                 else:
 
                     row = [[
@@ -605,9 +618,6 @@ class MolPDF(object):
         finally:
             self._destroy_temp_directory(tmp)
 
-
-# ------------ Indigo Renderer ------------------
-
 class IndigoRenderer(object):
     def __init__(self, indigo):
         self.indigo = indigo
@@ -673,7 +683,3 @@ class IndigoRenderer(object):
             return wb.toBuffer()
         finally:
             wb.dispose()
-
-# ----------------- End of Indigo Renderer -----------------
-
-
