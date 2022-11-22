@@ -3,7 +3,7 @@ numpy
 opencv-python
 pdfminer==20191125
 pdfrw==0.4
-Pillow==7.1.1
+Pillow==9.3.0
 pycryptodome==3.9.7
 reportlab==3.5.42
 six
